@@ -116,6 +116,9 @@ void bsc_get_broadcast_address(BACNET_ADDRESS * addr);
 BACNET_STACK_EXPORT
 void bsc_get_my_address(BACNET_ADDRESS *my_address);
 
+struct BACnet_SC_VMAC_Address;
+typedef struct BACnet_SC_VMAC_Address BACNET_SC_VMAC_ADDRESS;
+
 BACNET_STACK_EXPORT
 BVLC_SC_HUB_CONNECTION_STATUS
 bsc_hub_connection_status(void);
