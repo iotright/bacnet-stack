@@ -27,7 +27,7 @@
 #define DEBUG_PRINTF debug_printf
 #else
 #undef DEBUG_ENABLED
-#define DEBUG_PRINTF debug_printf_disabled
+#define DEBUG_PRINTF(...)
 #endif
 
 #ifndef LWS_PROTOCOL_LIST_TERM
@@ -455,20 +455,21 @@ static void *bws_cli_worker(void *arg)
         } else if (conn->state == BSC_WEBSOCKET_STATE_DISCONNECTING) {
             DEBUG_PRINTF("bws_cli_worker() process disconnecting event\n");
             DEBUG_PRINTF("bws_cli_worker() destroy ctx %p\n", conn->ctx);
-            /*  TRICKY:
-                This is ridiculus but lws_context_destroy() doesn't seem to be
-                thread safe. More over, on different platforms the
-                function behaves in different ways. Call of
-                lws_context_destroy() leads to several calls of
-                bws_cli_websocket_event() callback (LWS_CALLBACK_CLOSED,
-                etc..). But under some OS (MacOSx) that callback is
-                called from context of the bws_cli_worker() thread and
-                under some other OS (linux) the callback is called from
-                internal libwebsockets lib thread. That's why
-                bws_cli_mutex must be unlocked before
-                lws_context_destroy() call. To ensure that nobody calls
-                lws_context_destroy() from some parallel thread it is
-                protected by global websocket mutex. */
+            /* TRICKY: This is ridiculus but lws_context_destroy()
+                       does't seem to be
+                       thread safe. More over, on different platforms the
+                       function behaves in different ways. Call of
+                       lws_context_destroy() leads to several calls of
+                       bws_cli_websocket_event() callback (LWS_CALLBACK_CLOSED,
+                       etc..). But under some OS (MacOSx) that callback is
+                       called from context of the bws_cli_worker() thread and
+                       under some other OS (linux) the callback is called from
+                       internal libwebsockets lib thread. That's why
+                       bws_cli_mutex must be unlocked before
+                       lws_context_destroy() call. To ensure that nobody calls
+                       lws_context_destroy() from some parallel thread it is
+                       protected by global websocket mutex.
+            */
             pthread_mutex_unlock(&bws_cli_mutex);
             bsc_websocket_global_lock();
             lws_context_destroy(conn->ctx);
@@ -599,6 +600,7 @@ BSC_WEBSOCKET_RET bws_cli_connect(BSC_WEBSOCKET_PROTOCOL proto,
     info.connect_timeout_secs = timeout_s;
 
     /* TRICKY: check comments related to lws_context_destroy() call */
+
     pthread_mutex_unlock(&bws_cli_mutex);
     bsc_websocket_global_lock();
     bws_cli_conn[h].ctx = lws_create_context(&info);
@@ -752,21 +754,8 @@ BSC_WEBSOCKET_RET bws_cli_dispatch_send(
         return BSC_WEBSOCKET_INVALID_OPERATION;
     }
 
-    /*  malloc() and copying is evil, but libwesockets
-        wants some space before actual payload.*/
-    tmp_buf = malloc(payload_size + LWS_PRE);
-
-    if (!tmp_buf) {
-        DEBUG_PRINTF(
-            "bws_cli_dispatch_send() <<< ret = BSC_WEBSOCKET_NO_RESOURCES\n");
-        pthread_mutex_unlock(&bws_cli_mutex);
-        return BSC_WEBSOCKET_NO_RESOURCES;
-    }
-
-    memcpy(&tmp_buf[LWS_PRE], payload, payload_size);
-
-    written = lws_write(
-        bws_cli_conn[h].ws, &tmp_buf[LWS_PRE], payload_size, LWS_WRITE_BINARY);
+    written =
+        lws_write(bws_cli_conn[h].ws, payload, payload_size, LWS_WRITE_BINARY);
 
     DEBUG_PRINTF("bws_cli_dispatch_send() %d bytes is sent\n", written);
 
