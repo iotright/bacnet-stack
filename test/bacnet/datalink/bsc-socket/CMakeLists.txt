@@ -90,6 +90,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
+    ${SRC_DIR}/bacnet/sc_status.c
     # Test and test library files
     ${TST_DIR}/bacnet/basic/object/mock/device_mock.c
     ./src/main.c
@@ -148,6 +149,7 @@ elseif(WIN32)
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
     ${SRC_DIR}/bacnet/basic/sys/bigend.c
+    ${SRC_DIR}/bacnet/sc_status.c
     # Test and test library files
     ${TST_DIR}/bacnet/basic/object/mock/device_mock.c
     ./src/main.c
@@ -211,6 +213,7 @@ elseif(APPLE)
     ${SRC_DIR}/bacnet/proplist.c
     ${SRC_DIR}/bacnet/timestamp.c
     ${SRC_DIR}/bacnet/wp.c
+    ${SRC_DIR}/bacnet/sc_status.c
     # Test and test library files
     ${TST_DIR}/bacnet/basic/object/mock/device_mock.c
     ./src/main.c
