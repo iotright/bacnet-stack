@@ -177,7 +177,7 @@ add_library(${PROJECT_NAME}
     src/bacnet/basic/object/color_object.h
     src/bacnet/basic/object/color_temperature.c
     src/bacnet/basic/object/color_temperature.h
-    # src/bacnet/basic/object/client/device-client.c
+    src/bacnet/basic/object/client/device-client.c
     src/bacnet/basic/object/command.c
     src/bacnet/basic/object/command.h
     src/bacnet/basic/object/credential_data_input.c
